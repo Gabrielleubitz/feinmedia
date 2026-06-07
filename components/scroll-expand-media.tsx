@@ -22,6 +22,8 @@ interface ScrollExpandMediaProps {
 }
 
 const AUDIO_START_PROGRESS = 0.5;
+const WHEEL_PROGRESS_FACTOR = 0.0009;
+const TOUCH_PROGRESS_FACTOR = 0.0022;
 
 export function ScrollExpandMedia({
   mediaType = "video",
@@ -46,16 +48,13 @@ export function ScrollExpandMedia({
   const mediaFullyExpandedRef = useRef(false);
   const isVideoInViewRef = useRef(true);
   const touchStartYRef = useRef<number | null>(null);
+  const touchBaselineProgressRef = useRef(0);
   const userHasUnmutedRef = useRef(false);
 
   const isExpansionComplete = () =>
     mediaFullyExpandedRef.current || scrollProgressRef.current >= 1;
 
-  const applyProgressDelta = (delta: number, fromUserGesture: boolean) => {
-    const newProgress = Math.min(
-      Math.max(scrollProgressRef.current + delta, 0),
-      1,
-    );
+  const syncProgressState = (newProgress: number) => {
     scrollProgressRef.current = newProgress;
     setScrollProgress(newProgress);
 
@@ -70,6 +69,13 @@ export function ScrollExpandMedia({
         setShowContent(false);
       }
     }
+  };
+
+  const applyProgressValue = (newProgress: number, fromUserGesture: boolean) => {
+    const clamped = Math.min(Math.max(newProgress, 0), 1);
+    if (clamped === scrollProgressRef.current) return;
+
+    syncProgressState(clamped);
 
     if (!fromUserGesture) return;
 
@@ -77,7 +83,7 @@ export function ScrollExpandMedia({
     if (!video || mediaType !== "video") return;
 
     const wantAudio =
-      newProgress >= AUDIO_START_PROGRESS && isVideoInViewRef.current;
+      clamped >= AUDIO_START_PROGRESS && isVideoInViewRef.current;
 
     if (wantAudio) {
       userHasUnmutedRef.current = true;
@@ -93,9 +99,9 @@ export function ScrollExpandMedia({
     }
   };
 
-  useEffect(() => {
-    scrollProgressRef.current = scrollProgress;
-  }, [scrollProgress]);
+  const applyProgressDelta = (delta: number, fromUserGesture: boolean) => {
+    applyProgressValue(scrollProgressRef.current + delta, fromUserGesture);
+  };
 
   useEffect(() => {
     mediaFullyExpandedRef.current = mediaFullyExpanded;
@@ -178,6 +184,22 @@ export function ScrollExpandMedia({
   useEffect(() => {
     if (reducedMotion) return;
 
+    const hijacking = !mediaFullyExpanded && scrollProgress < 1;
+    document.body.style.overflow = hijacking ? "hidden" : "";
+    document.documentElement.style.overscrollBehaviorY = hijacking ? "none" : "";
+
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overscrollBehaviorY = "";
+    };
+  }, [reducedMotion, mediaFullyExpanded, scrollProgress]);
+
+  useEffect(() => {
+    if (reducedMotion) return;
+
+    const section = sectionRef.current;
+    if (!section) return;
+
     const handlePointerDown = () => {
       const video = videoRef.current;
       if (!video || mediaType !== "video") return;
@@ -200,41 +222,49 @@ export function ScrollExpandMedia({
       if (isExpansionComplete()) {
         if (e.deltaY < 0 && window.scrollY <= 5) {
           e.preventDefault();
-          applyProgressDelta(e.deltaY * 0.0009, true);
+          applyProgressDelta(e.deltaY * WHEEL_PROGRESS_FACTOR, true);
         }
         return;
       }
 
       e.preventDefault();
-      applyProgressDelta(e.deltaY * 0.0009, true);
+      applyProgressDelta(e.deltaY * WHEEL_PROGRESS_FACTOR, true);
     };
 
     const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
       touchStartYRef.current = e.touches[0].clientY;
+      touchBaselineProgressRef.current = scrollProgressRef.current;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+
       const startY = touchStartYRef.current;
       if (startY === null) return;
 
       const touchY = e.touches[0].clientY;
       const deltaY = startY - touchY;
+      const nextProgress =
+        touchBaselineProgressRef.current + deltaY * TOUCH_PROGRESS_FACTOR;
 
       if (isExpansionComplete()) {
-        if (deltaY < -20 && window.scrollY <= 5) {
+        if (deltaY < 0 && window.scrollY <= 5) {
           e.preventDefault();
-          applyProgressDelta(deltaY * 0.005, true);
+          applyProgressValue(nextProgress, true);
         }
         return;
       }
 
       e.preventDefault();
-      const scrollFactor = deltaY < 0 ? 0.008 : 0.005;
-      applyProgressDelta(deltaY * scrollFactor, true);
-      touchStartYRef.current = touchY;
+      applyProgressValue(nextProgress, true);
     };
 
     const handleTouchEnd = () => {
+      touchStartYRef.current = null;
+    };
+
+    const handleTouchCancel = () => {
       touchStartYRef.current = null;
     };
 
@@ -247,17 +277,19 @@ export function ScrollExpandMedia({
     window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("scroll", handleScroll);
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchmove", handleTouchMove, { passive: false });
-    window.addEventListener("touchend", handleTouchEnd);
+    section.addEventListener("touchstart", handleTouchStart, { passive: false });
+    section.addEventListener("touchmove", handleTouchMove, { passive: false });
+    section.addEventListener("touchend", handleTouchEnd);
+    section.addEventListener("touchcancel", handleTouchCancel);
 
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handleTouchEnd);
+      section.removeEventListener("touchstart", handleTouchStart);
+      section.removeEventListener("touchmove", handleTouchMove);
+      section.removeEventListener("touchend", handleTouchEnd);
+      section.removeEventListener("touchcancel", handleTouchCancel);
     };
   }, [reducedMotion, mediaType]);
 
@@ -273,7 +305,7 @@ export function ScrollExpandMedia({
 
   const mediaWidth = 300 + scrollProgress * (isMobileState ? 650 : 1250);
   const mediaHeight = 400 + scrollProgress * (isMobileState ? 200 : 400);
-  const textTranslateX = scrollProgress * (isMobileState ? 18 : 150);
+  const textTranslateX = scrollProgress * (isMobileState ? 52 : 150);
   const expandHint =
     scrollToExpand && isMobileState
       ? scrollToExpand.replace(/scroll/i, "Swipe")
@@ -283,7 +315,13 @@ export function ScrollExpandMedia({
   const restOfTitle = title ? title.split(" ").slice(1).join(" ") : "";
 
   return (
-    <div ref={sectionRef} className="overflow-x-hidden bg-background transition-colors duration-700 ease-in-out">
+    <div
+      ref={sectionRef}
+      className="overflow-x-hidden bg-background transition-colors duration-700 ease-in-out"
+      style={{
+        touchAction: mediaFullyExpanded || scrollProgress >= 1 ? "auto" : "none",
+      }}
+    >
       <section className="relative flex min-h-[100dvh] flex-col items-center justify-start">
         <div className="relative flex min-h-[100dvh] w-full flex-col items-center">
           <motion.div
