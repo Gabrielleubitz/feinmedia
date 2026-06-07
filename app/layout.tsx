@@ -1,5 +1,5 @@
 import React from "react"
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Outfit, DM_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
@@ -10,24 +10,20 @@ const dmSans = DM_Sans({ subsets: ["latin"], variable: '--font-dm-sans' });
 export const metadata: Metadata = {
   title: 'Fein Media Productions | Powerful Videos That Tell Your Story',
   description: 'FeinMediaProductions delivers high-energy social media videos, event coverage, and scroll-stopping short-form reels designed to help brands stand out in the digital noise.',
-  generator: 'v0.app',
+  manifest: '/site.webmanifest',
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
     ],
-    apple: '/apple-icon.png',
   },
+  appleWebApp: {
+    title: 'Fein Media',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#050507',
 }
 
 export default function RootLayout({
