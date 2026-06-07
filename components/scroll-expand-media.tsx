@@ -22,8 +22,11 @@ interface ScrollExpandMediaProps {
 }
 
 const AUDIO_START_PROGRESS = 0.5;
-const WHEEL_PROGRESS_FACTOR = 0.0009;
-const TOUCH_PROGRESS_FACTOR = 0.0022;
+const WHEEL_PROGRESS_FACTOR = 0.00135;
+
+function getTouchProgressFactor() {
+  return window.matchMedia("(max-width: 767px)").matches ? 0.005 : 0.0028;
+}
 
 export function ScrollExpandMedia({
   mediaType = "video",
@@ -49,6 +52,9 @@ export function ScrollExpandMedia({
   const isVideoInViewRef = useRef(true);
   const touchStartYRef = useRef<number | null>(null);
   const touchBaselineProgressRef = useRef(0);
+  const touchVelocityRef = useRef(0);
+  const lastTouchMoveRef = useRef<{ y: number; time: number } | null>(null);
+  const progressAnimationRef = useRef<number | null>(null);
   const userHasUnmutedRef = useRef(false);
 
   const isExpansionComplete = () =>
@@ -101,6 +107,40 @@ export function ScrollExpandMedia({
 
   const applyProgressDelta = (delta: number, fromUserGesture: boolean) => {
     applyProgressValue(scrollProgressRef.current + delta, fromUserGesture);
+  };
+
+  const cancelProgressAnimation = () => {
+    if (progressAnimationRef.current !== null) {
+      cancelAnimationFrame(progressAnimationRef.current);
+      progressAnimationRef.current = null;
+    }
+  };
+
+  const animateProgressTo = (target: number, fromUserGesture: boolean) => {
+    cancelProgressAnimation();
+
+    const start = scrollProgressRef.current;
+    if (Math.abs(start - target) < 0.001) {
+      applyProgressValue(target, fromUserGesture);
+      return;
+    }
+
+    const startTime = performance.now();
+    const duration = 320;
+
+    const step = (now: number) => {
+      const t = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - (1 - t) ** 3;
+      applyProgressValue(start + (target - start) * eased, fromUserGesture);
+
+      if (t < 1) {
+        progressAnimationRef.current = requestAnimationFrame(step);
+      } else {
+        progressAnimationRef.current = null;
+      }
+    };
+
+    progressAnimationRef.current = requestAnimationFrame(step);
   };
 
   useEffect(() => {
@@ -233,8 +273,12 @@ export function ScrollExpandMedia({
 
     const handleTouchStart = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
-      touchStartYRef.current = e.touches[0].clientY;
+      cancelProgressAnimation();
+      const y = e.touches[0].clientY;
+      touchStartYRef.current = y;
       touchBaselineProgressRef.current = scrollProgressRef.current;
+      touchVelocityRef.current = 0;
+      lastTouchMoveRef.current = { y, time: performance.now() };
     };
 
     const handleTouchMove = (e: TouchEvent) => {
@@ -244,9 +288,21 @@ export function ScrollExpandMedia({
       if (startY === null) return;
 
       const touchY = e.touches[0].clientY;
+      const now = performance.now();
+      const lastMove = lastTouchMoveRef.current;
+
+      if (lastMove) {
+        const dt = now - lastMove.time;
+        if (dt > 0) {
+          touchVelocityRef.current = (lastMove.y - touchY) / dt;
+        }
+      }
+
+      lastTouchMoveRef.current = { y: touchY, time: now };
+
       const deltaY = startY - touchY;
       const nextProgress =
-        touchBaselineProgressRef.current + deltaY * TOUCH_PROGRESS_FACTOR;
+        touchBaselineProgressRef.current + deltaY * getTouchProgressFactor();
 
       if (isExpansionComplete()) {
         if (deltaY < 0 && window.scrollY <= 5) {
@@ -261,11 +317,31 @@ export function ScrollExpandMedia({
     };
 
     const handleTouchEnd = () => {
+      const progress = scrollProgressRef.current;
+      const velocity = touchVelocityRef.current;
+      const atTop = window.scrollY <= 5;
+
+      if (!isExpansionComplete()) {
+        if (progress >= 0.72 || (progress >= 0.34 && velocity > 0.35)) {
+          animateProgressTo(1, true);
+        } else if (progress <= 0.18 || (progress < 0.34 && velocity < -0.35)) {
+          animateProgressTo(0, true);
+        }
+      } else if (atTop && progress < 1) {
+        if (progress >= 0.5 || velocity > 0.25) {
+          animateProgressTo(1, true);
+        } else {
+          animateProgressTo(0, true);
+        }
+      }
+
       touchStartYRef.current = null;
+      lastTouchMoveRef.current = null;
+      touchVelocityRef.current = 0;
     };
 
     const handleTouchCancel = () => {
-      touchStartYRef.current = null;
+      handleTouchEnd();
     };
 
     const handleScroll = () => {
@@ -283,6 +359,7 @@ export function ScrollExpandMedia({
     section.addEventListener("touchcancel", handleTouchCancel);
 
     return () => {
+      cancelProgressAnimation();
       window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("scroll", handleScroll);
