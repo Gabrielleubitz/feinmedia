@@ -39,7 +39,7 @@ const advantageCards: CardItem[] = [
       "Content with a purpose. Every frame is edited to match your brand voice and platform-specific algorithms.",
     imgSrc: "/images/wix/pro-camera-night.jpg",
     icon: <Target className="h-6 w-6 text-primary" />,
-    linkHref: "#contact",
+    linkHref: "https://calendly.com/feinmediaproductions",
   },
 ];
 

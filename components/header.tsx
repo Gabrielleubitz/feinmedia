@@ -6,11 +6,13 @@ import Image from "next/image";
 import { Menu, X, Instagram, Facebook, Linkedin } from "lucide-react";
 import { scrollToSection, scrollToTop } from "@/lib/scroll-to-section";
 
+const CALENDLY_URL = "https://calendly.com/feinmediaproductions";
+
 const navLinks = [
   { href: "#work", label: "Our Work" },
   { href: "#advantage", label: "The Advantage" },
   { href: "#gallery", label: "Gallery" },
-  { href: "#contact", label: "Contact" },
+  { href: CALENDLY_URL, label: "Contact" },
 ];
 
 const socials = [
@@ -20,7 +22,9 @@ const socials = [
   { href: "https://www.linkedin.com/in/shraga-fein-748442410", label: "LinkedIn", icon: Linkedin },
 ];
 
-const CALENDLY_URL = "https://calendly.com/feinmediaproductions";
+function isExternalNavLink(href: string) {
+  return href.startsWith("http");
+}
 
 function handleHashNav(
   event: React.MouseEvent<HTMLAnchorElement>,
@@ -104,18 +108,28 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-8 md:flex">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={(event) => handleHashNav(event, link.href)}
-              className={`text-sm transition-colors hover:text-foreground ${
-                isScrolled ? "text-muted-foreground" : "text-white/75 hover:text-white"
-              }`}
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) => {
+            const external = isExternalNavLink(link.href);
+            return (
+              <a
+                key={link.href}
+                href={link.href}
+                {...(external
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+                onClick={
+                  external
+                    ? undefined
+                    : (event) => handleHashNav(event, link.href)
+                }
+                className={`text-sm transition-colors hover:text-foreground ${
+                  isScrolled ? "text-muted-foreground" : "text-white/75 hover:text-white"
+                }`}
+              >
+                {link.label}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Social + CTA */}
@@ -167,18 +181,27 @@ export function Header() {
       {isMenuOpen && (
         <div className="max-h-[calc(100dvh-6rem-env(safe-area-inset-top))] overflow-y-auto rounded-b-2xl border-t border-border bg-background px-6 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:hidden">
           <nav className="flex flex-col gap-1">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="rounded-lg px-2 py-3 text-lg text-foreground active:bg-secondary"
-                onClick={(event) =>
-                  handleHashNav(event, link.href, () => setIsMenuOpen(false))
-                }
-              >
-                {link.label}
-              </a>
-            ))}
+            {navLinks.map((link) => {
+              const external = isExternalNavLink(link.href);
+              return (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  {...(external
+                    ? { target: "_blank", rel: "noopener noreferrer" }
+                    : {})}
+                  className="rounded-lg px-2 py-3 text-lg text-foreground active:bg-secondary"
+                  onClick={
+                    external
+                      ? () => setIsMenuOpen(false)
+                      : (event) =>
+                          handleHashNav(event, link.href, () => setIsMenuOpen(false))
+                  }
+                >
+                  {link.label}
+                </a>
+              );
+            })}
             <div className="flex items-center gap-3 pt-2">
               {socials.map((social) => {
                 const Icon = social.icon;

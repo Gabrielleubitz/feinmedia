@@ -5,11 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { scrollToSection, scrollToTop } from "@/lib/scroll-to-section";
 
+const CALENDLY_URL = "https://calendly.com/feinmediaproductions";
+
 const navLinks = [
   { label: "Our Work", href: "#work" },
   { label: "The Advantage", href: "#advantage" },
   { label: "Gallery", href: "#gallery" },
-  { label: "Contact", href: "#contact" },
+  { label: "Contact", href: CALENDLY_URL },
 ];
 
 const socials = [
@@ -23,7 +25,10 @@ const PHONE_DISPLAY = "054-227-1935";
 const PHONE_HREF = "tel:+972542271935";
 const WHATSAPP_HREF = "https://wa.me/972542271935";
 const EMAIL = "feinmediaproductions@gmail.com";
-const CALENDLY_URL = "https://calendly.com/feinmediaproductions";
+
+function isExternalNavLink(href: string) {
+  return href.startsWith("http");
+}
 
 function handleHashClick(event: MouseEvent<HTMLAnchorElement>, href: string) {
   if (!href.startsWith("#")) return;
@@ -71,17 +76,27 @@ export function FooterSection() {
           <div>
             <h4 className="mb-4 text-sm font-medium text-foreground">Explore</h4>
             <ul className="space-y-3">
-              {navLinks.map((link) => (
-                <li key={link.label}>
-                  <a
-                    href={link.href}
-                    onClick={(event) => handleHashClick(event, link.href)}
-                    className="inline-block py-0.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-                  >
-                    {link.label}
-                  </a>
-                </li>
-              ))}
+              {navLinks.map((link) => {
+                const external = isExternalNavLink(link.href);
+                return (
+                  <li key={link.label}>
+                    <a
+                      href={link.href}
+                      {...(external
+                        ? { target: "_blank", rel: "noopener noreferrer" }
+                        : {})}
+                      onClick={
+                        external
+                          ? undefined
+                          : (event) => handleHashClick(event, link.href)
+                      }
+                      className="inline-block py-0.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
