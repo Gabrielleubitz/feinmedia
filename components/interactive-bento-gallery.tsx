@@ -127,6 +127,7 @@ interface GalleryModalProps {
   onClose: () => void;
   setSelectedItem: (item: MediaItemType | null) => void;
   mediaItems: MediaItemType[];
+  canReorder: boolean;
 }
 
 const GalleryModal = ({
@@ -135,6 +136,7 @@ const GalleryModal = ({
   onClose,
   setSelectedItem,
   mediaItems,
+  canReorder,
 }: GalleryModalProps) => {
   const [dockPosition, setDockPosition] = useState({ x: 0, y: 0 });
 
@@ -147,14 +149,14 @@ const GalleryModal = ({
         animate={{ scale: 1 }}
         exit={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="fixed inset-0 z-[60] min-h-screen w-full overflow-hidden rounded-none bg-background/90 backdrop-blur-xl sm:h-[90vh] md:h-[600px] sm:rounded-lg md:rounded-xl"
+        className="fixed inset-0 z-[60] flex min-h-[100dvh] w-full flex-col overflow-hidden bg-background/95 backdrop-blur-xl"
       >
         <div className="flex h-full flex-col">
-          <div className="flex flex-1 items-center justify-center bg-background/50 p-2 sm:p-3 md:p-4">
+          <div className="flex flex-1 items-center justify-center bg-background/50 px-3 pb-24 pt-[calc(5rem+env(safe-area-inset-top))] sm:p-4 sm:pb-28 md:p-4">
             <AnimatePresence mode="wait">
               <motion.div
                 key={selectedItem.id}
-                className="relative aspect-[16/9] h-auto max-h-[70vh] w-full max-w-[95%] overflow-hidden rounded-lg shadow-md sm:max-w-[85%] md:max-w-3xl"
+                className="relative aspect-[16/9] h-auto max-h-[58dvh] w-full max-w-full overflow-hidden rounded-lg shadow-md sm:max-h-[70vh] sm:max-w-[85%] md:max-w-3xl"
                 initial={{ y: 20, scale: 0.97 }}
                 animate={{
                   y: 0,
@@ -199,7 +201,7 @@ const GalleryModal = ({
       </motion.div>
 
       <motion.div
-        drag
+        drag={canReorder}
         dragMomentum={false}
         dragElastic={0.1}
         initial={false}
@@ -210,10 +212,10 @@ const GalleryModal = ({
             y: prev.y + info.offset.y,
           }));
         }}
-        className="fixed bottom-4 left-1/2 z-[70] -translate-x-1/2 touch-none"
+        className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-1/2 z-[70] max-w-[calc(100vw-2rem)] -translate-x-1/2"
       >
-        <motion.div className="relative cursor-grab rounded-xl border border-primary/30 bg-primary/10 shadow-lg backdrop-blur-xl active:cursor-grabbing">
-          <div className="flex items-center -space-x-2 px-3 py-2">
+        <motion.div className="relative cursor-grab rounded-xl border border-primary/30 bg-primary/10 shadow-lg backdrop-blur-xl active:cursor-grabbing max-[639px]:cursor-default">
+          <div className="flex max-w-[calc(100vw-2.5rem)] items-center overflow-x-auto overscroll-x-contain -space-x-2 px-3 py-2.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {mediaItems.map((item, index) => (
               <motion.div
                 key={item.id}
@@ -224,7 +226,7 @@ const GalleryModal = ({
                 style={{
                   zIndex: selectedItem.id === item.id ? 30 : mediaItems.length - index,
                 }}
-                className={`relative group h-8 w-8 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg sm:h-9 sm:w-9 md:h-10 md:w-10 hover:z-20 ${
+                className={`relative group h-9 w-9 flex-shrink-0 cursor-pointer overflow-hidden rounded-lg touch-manipulation sm:h-9 sm:w-9 md:h-10 md:w-10 hover:z-20 ${
                   selectedItem.id === item.id
                     ? "shadow-lg ring-2 ring-primary/70"
                     : "hover:ring-2 hover:ring-primary/30"
@@ -267,9 +269,27 @@ export default function InteractiveBentoGallery({
   const [selectedItem, setSelectedItem] = useState<MediaItemType | null>(null);
   const [items, setItems] = useState(mediaItems);
   const [isDragging, setIsDragging] = useState(false);
+  const [canReorder, setCanReorder] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const apply = () => setCanReorder(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedItem) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [selectedItem]);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <div className="mb-8 text-center">
         <motion.h2
           className="font-display text-balance text-2xl font-bold text-foreground sm:text-3xl md:text-4xl"
@@ -297,10 +317,11 @@ export default function InteractiveBentoGallery({
             onClose={() => setSelectedItem(null)}
             setSelectedItem={setSelectedItem}
             mediaItems={items}
+            canReorder={canReorder}
           />
         ) : (
           <motion.div
-            className="grid auto-rows-[60px] grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-4"
+            className="grid auto-rows-[72px] grid-cols-1 gap-3 sm:auto-rows-[60px] sm:grid-cols-3 md:grid-cols-4"
             initial="hidden"
             animate="visible"
             exit="hidden"
@@ -313,7 +334,7 @@ export default function InteractiveBentoGallery({
               <motion.div
                 key={item.id}
                 layoutId={`media-${item.id}`}
-                className={`relative cursor-move overflow-hidden rounded-xl border border-border ${item.span}`}
+                className={`group relative min-h-[72px] cursor-pointer overflow-hidden rounded-xl border border-border touch-manipulation sm:min-h-0 sm:cursor-move ${item.span}`}
                 onClick={() => !isDragging && setSelectedItem(item)}
                 variants={{
                   hidden: { y: 50, scale: 0.9, opacity: 0 },
@@ -329,13 +350,14 @@ export default function InteractiveBentoGallery({
                     },
                   },
                 }}
-                whileHover={{ scale: 1.02 }}
-                drag
+                whileHover={{ scale: canReorder ? 1.02 : 1 }}
+                drag={canReorder}
                 dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
                 dragElastic={1}
                 onDragStart={() => setIsDragging(true)}
                 onDragEnd={(_, info) => {
                   setIsDragging(false);
+                  if (!canReorder) return;
                   const moveDistance = info.offset.x + info.offset.y;
                   if (Math.abs(moveDistance) > 50) {
                     const newItems = [...items];
@@ -356,8 +378,8 @@ export default function InteractiveBentoGallery({
                   onClick={() => !isDragging && setSelectedItem(item)}
                 />
                 <motion.div
-                  className="absolute inset-0 flex flex-col justify-end p-2 sm:p-3 md:p-4"
-                  initial={{ opacity: 0 }}
+                  className="absolute inset-0 flex flex-col justify-end p-3 opacity-100 sm:p-3 sm:opacity-0 md:p-4 md:group-hover:opacity-100"
+                  initial={{ opacity: 1 }}
                   whileHover={{ opacity: 1 }}
                   transition={{ duration: 0.2 }}
                 >

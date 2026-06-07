@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Menu, X, Instagram, Facebook, Linkedin } from "lucide-react";
+import { scrollToSection, scrollToTop } from "@/lib/scroll-to-section";
 
 const navLinks = [
   { href: "#work", label: "Our Work" },
@@ -20,6 +21,23 @@ const socials = [
 ];
 
 const CALENDLY_URL = "https://calendly.com/feinmediaproductions";
+
+function handleHashNav(
+  event: React.MouseEvent<HTMLAnchorElement>,
+  href: string,
+  onNavigate?: () => void,
+) {
+  if (!href.startsWith("#")) return;
+  event.preventDefault();
+  scrollToSection(href);
+  onNavigate?.();
+}
+
+function handleHomeNav(event: React.MouseEvent<HTMLAnchorElement>) {
+  if (window.location.pathname !== "/") return;
+  event.preventDefault();
+  scrollToTop();
+}
 
 function TikTokIcon({ size = 18 }: { size?: number }) {
   return (
@@ -42,9 +60,27 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [isMenuOpen]);
+
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+
+    const timer = window.setTimeout(() => {
+      scrollToSection(hash);
+    }, 150);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
   return (
     <header
-      className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[94%] max-w-6xl transition-all duration-300 ${
+      className={`fixed top-[max(1rem,env(safe-area-inset-top))] left-1/2 z-50 w-[calc(100%-2rem)] max-w-6xl -translate-x-1/2 transition-all duration-300 sm:w-[94%] ${
         isScrolled
           ? "bg-background/80 backdrop-blur-md rounded-full border border-border"
           : "rounded-full border border-white/15 bg-black/45 backdrop-blur-md shadow-lg shadow-black/20"
@@ -52,7 +88,7 @@ export function Header() {
     >
       <div className="flex items-center justify-between transition-all duration-300 px-2 pl-5 py-2">
         {/* Logo */}
-        <Link href="#" className="flex items-center gap-2.5">
+        <Link href="/" onClick={handleHomeNav} className="flex items-center gap-2.5">
           <Image
             src="/images/fein-logo.png"
             alt="Fein Media Productions"
@@ -69,15 +105,16 @@ export function Header() {
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-8 md:flex">
           {navLinks.map((link) => (
-            <Link
+            <a
               key={link.href}
               href={link.href}
+              onClick={(event) => handleHashNav(event, link.href)}
               className={`text-sm transition-colors hover:text-foreground ${
                 isScrolled ? "text-muted-foreground" : "text-white/75 hover:text-white"
               }`}
             >
               {link.label}
-            </Link>
+            </a>
           ))}
         </nav>
 
@@ -118,7 +155,8 @@ export function Header() {
         <button
           type="button"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className={`transition-colors md:hidden ${isScrolled ? "text-foreground" : "text-white"}`}
+          className={`flex min-h-11 min-w-11 items-center justify-center rounded-full transition-colors md:hidden ${isScrolled ? "text-foreground" : "text-white"}`}
+          aria-expanded={isMenuOpen}
           aria-label="Toggle menu"
         >
           {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -127,17 +165,19 @@ export function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="border-t border-border bg-background px-6 py-8 md:hidden rounded-b-2xl">
-          <nav className="flex flex-col gap-6">
+        <div className="max-h-[calc(100dvh-6rem-env(safe-area-inset-top))] overflow-y-auto rounded-b-2xl border-t border-border bg-background px-6 py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:hidden">
+          <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
-              <Link
+              <a
                 key={link.href}
                 href={link.href}
-                className="text-lg text-foreground"
-                onClick={() => setIsMenuOpen(false)}
+                className="rounded-lg px-2 py-3 text-lg text-foreground active:bg-secondary"
+                onClick={(event) =>
+                  handleHashNav(event, link.href, () => setIsMenuOpen(false))
+                }
               >
                 {link.label}
-              </Link>
+              </a>
             ))}
             <div className="flex items-center gap-3 pt-2">
               {socials.map((social) => {
@@ -161,7 +201,7 @@ export function Header() {
               href={CALENDLY_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 rounded-full bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground"
+              className="mt-4 inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-5 py-3 text-center text-sm font-medium text-primary-foreground active:scale-[0.98]"
               onClick={() => setIsMenuOpen(false)}
             >
               Book a call now

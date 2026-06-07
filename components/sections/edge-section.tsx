@@ -3,8 +3,8 @@ import { Reveal } from "@/components/reveal";
 
 export function EdgeSection() {
   return (
-    <section className="border-b border-border bg-background py-24 md:py-32">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-6 md:px-12 lg:grid-cols-2 lg:gap-20 lg:px-20">
+    <section className="border-b border-border bg-background py-16 sm:py-24 md:py-32">
+      <div className="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 sm:gap-12 sm:px-6 md:px-12 lg:grid-cols-2 lg:gap-20 lg:px-20">
         {/* Image */}
         <Reveal variant="right" duration={1100} className="order-2 lg:order-1">
           <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border">
@@ -21,7 +21,7 @@ export function EdgeSection() {
         {/* Copy */}
         <div className="order-1 lg:order-2">
           <Reveal variant="left">
-            <h2 className="text-balance text-4xl font-semibold tracking-tight text-foreground md:text-5xl lg:text-6xl">
+            <h2 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
               The Fein <span className="text-primary">Edge</span>
             </h2>
           </Reveal>
@@ -34,16 +34,16 @@ export function EdgeSection() {
             </p>
           </Reveal>
 
-          <div className="mt-9 grid grid-cols-3 gap-4">
+          <div className="mt-8 grid grid-cols-3 gap-2 sm:mt-9 sm:gap-4">
             {[
               { value: "3s", label: "Hook window" },
               { value: "9:16", label: "Native framing" },
               { value: "24h", label: "Fast turnaround" },
             ].map((stat, i) => (
               <Reveal key={stat.label} variant="up" delay={250 + i * 110}>
-                <div className="rounded-xl border border-border bg-card p-4">
-                  <p className="text-2xl font-semibold text-primary md:text-3xl">{stat.value}</p>
-                  <p className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
+                <div className="rounded-xl border border-border bg-card p-3 sm:p-4">
+                  <p className="text-lg font-semibold text-primary sm:text-2xl md:text-3xl">{stat.value}</p>
+                  <p className="mt-1 text-[10px] uppercase leading-tight tracking-wide text-muted-foreground sm:text-xs">
                     {stat.label}
                   </p>
                 </div>

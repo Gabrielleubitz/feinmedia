@@ -120,16 +120,20 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+    overflow-x: clip;
+    -webkit-text-size-adjust: 100%;
+    scroll-padding-top: calc(5.5rem + env(safe-area-inset-top));
+  }
   body {
     @apply bg-background text-foreground;
+    overflow-x: clip;
+    min-height: 100dvh;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-  }
-  
-  html {
-    scroll-behavior: smooth;
   }
 }
 
@@ -314,4 +318,21 @@
   letter-spacing: 0.12em;
   font-size: 0.8125rem;
   text-shadow: 0 1px 10px rgb(0 0 0 / 0.8);
+}
+
+#work,
+#advantage,
+#gallery,
+#contact {
+  scroll-margin-top: calc(5.5rem + env(safe-area-inset-top));
+}
+
+@media (max-width: 767px) {
+  #work h1.font-display {
+    font-size: clamp(2rem, 11vw, 2.75rem);
+  }
+
+  #work p.text-sm.font-medium.uppercase {
+    letter-spacing: 0.2em;
+  }
 }

@@ -8,7 +8,7 @@ export function IganiBadge() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Website built by Igani"
-      className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full border border-white/20 bg-black/85 px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md transition-all hover:border-primary/40 hover:shadow-[0_8px_32px_rgba(34,211,238,0.15)]"
+      className="fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-40 hidden items-center gap-3 rounded-full border border-white/20 bg-black/85 px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md transition-all hover:border-primary/40 hover:shadow-[0_8px_32px_rgba(34,211,238,0.15)] sm:flex"
     >
       <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground">
         Built by

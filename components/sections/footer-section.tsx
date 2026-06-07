@@ -1,7 +1,9 @@
 "use client";
 
+import type { MouseEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { scrollToSection, scrollToTop } from "@/lib/scroll-to-section";
 
 const navLinks = [
   { label: "Our Work", href: "#work" },
@@ -17,15 +19,35 @@ const socials = [
   { label: "LinkedIn", href: "https://www.linkedin.com/in/shraga-fein-748442410" },
 ];
 
+const PHONE_DISPLAY = "054-227-1935";
+const PHONE_HREF = "tel:+972542271935";
+const WHATSAPP_HREF = "https://wa.me/972542271935";
+const EMAIL = "feinmediaproductions@gmail.com";
+const CALENDLY_URL = "https://calendly.com/feinmediaproductions";
+
+function handleHashClick(event: MouseEvent<HTMLAnchorElement>, href: string) {
+  if (!href.startsWith("#")) return;
+  event.preventDefault();
+  scrollToSection(href);
+}
+
+function handleHomeClick(event: MouseEvent<HTMLAnchorElement>) {
+  if (window.location.pathname !== "/") return;
+  event.preventDefault();
+  scrollToTop();
+}
+
 export function FooterSection() {
   return (
     <footer id="contact" className="border-t border-border bg-background">
-      {/* Big brand band */}
-      <div className="px-6 py-16 md:px-12 md:py-20 lg:px-20">
+      <div className="px-4 py-12 sm:px-6 sm:py-16 md:px-12 md:py-20 lg:px-20">
         <div className="grid grid-cols-1 gap-12 md:grid-cols-3">
-          {/* Brand */}
           <div className="md:col-span-1">
-            <Link href="/" className="flex items-center gap-3">
+            <Link
+              href="/"
+              onClick={handleHomeClick}
+              className="flex items-center gap-3"
+            >
               <Image
                 src="/images/fein-logo.png"
                 alt="Fein Media Productions"
@@ -46,46 +68,45 @@ export function FooterSection() {
             </p>
           </div>
 
-          {/* Nav */}
           <div>
             <h4 className="mb-4 text-sm font-medium text-foreground">Explore</h4>
             <ul className="space-y-3">
               {navLinks.map((link) => (
                 <li key={link.label}>
-                  <Link
+                  <a
                     href={link.href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={(event) => handleHashClick(event, link.href)}
+                    className="inline-block py-0.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {link.label}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Contact */}
           <div>
             <h4 className="mb-4 text-sm font-medium text-foreground">Get in touch</h4>
             <ul className="space-y-3">
               <li>
                 <a
-                  href="mailto:feinmediaproductions@gmail.com"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                  href={`mailto:${EMAIL}`}
+                  className="break-all text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  feinmediaproductions@gmail.com
+                  {EMAIL}
                 </a>
               </li>
               <li>
                 <a
-                  href="tel:0542271935"
+                  href={PHONE_HREF}
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
-                  054-227-1935
+                  {PHONE_DISPLAY}
                 </a>
               </li>
               <li>
                 <a
-                  href="https://wa.me/9720542271935"
+                  href={WHATSAPP_HREF}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -93,19 +114,28 @@ export function FooterSection() {
                   WhatsApp Us
                 </a>
               </li>
+              <li>
+                <a
+                  href={CALENDLY_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Book a call
+                </a>
+              </li>
             </ul>
           </div>
         </div>
       </div>
 
-      {/* Bottom Bar */}
-      <div className="border-t border-border px-6 py-6 md:px-12 lg:px-20">
+      <div className="border-t border-border px-4 py-6 sm:px-6 md:px-12 lg:px-20">
         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-center text-xs text-muted-foreground md:text-left">
             © 2026 Fein Media Productions. All rights reserved.
           </p>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
             {socials.map((social) => (
               <a
                 key={social.label}
@@ -118,7 +148,7 @@ export function FooterSection() {
               </a>
             ))}
             <a
-              href="https://wa.me/9720542271935"
+              href={WHATSAPP_HREF}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-muted-foreground transition-colors hover:text-foreground"

@@ -45,11 +45,11 @@ const advantageCards: CardItem[] = [
 
 export function AdvantageSection() {
   return (
-    <section id="advantage" className="border-t border-border bg-background py-24 md:py-32">
-      <div className="mx-auto max-w-7xl px-6 md:px-12 lg:px-20">
-        <div className="mb-14 flex flex-col items-start justify-between gap-6 md:flex-row md:items-end">
+    <section id="advantage" className="border-t border-border bg-background py-16 sm:py-24 md:py-32">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-12 lg:px-20">
+        <div className="mb-10 flex flex-col items-start justify-between gap-4 sm:mb-14 sm:gap-6 md:flex-row md:items-end">
           <Reveal variant="up">
-            <h2 className="text-balance text-4xl font-semibold tracking-tight text-foreground md:text-5xl lg:text-6xl">
+            <h2 className="text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl md:text-5xl lg:text-6xl">
               The Fein <span className="text-primary">Advantage</span>
             </h2>
           </Reveal>

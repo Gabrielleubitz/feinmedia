@@ -54,7 +54,7 @@ export const ExpandingCards = React.forwardRef<HTMLUListElement, ExpandingCardsP
     return (
       <ul
         className={cn(
-          "grid h-[600px] w-full max-w-6xl gap-2 transition-[grid-template-columns,grid-template-rows] duration-500 ease-out md:h-[500px]",
+          "grid h-[min(640px,72dvh)] w-full max-w-6xl gap-2 transition-[grid-template-columns,grid-template-rows] duration-500 ease-out md:h-[500px]",
           className,
         )}
         style={{
@@ -68,7 +68,7 @@ export const ExpandingCards = React.forwardRef<HTMLUListElement, ExpandingCardsP
           <li
             key={item.id}
             className={cn(
-              "group relative min-h-0 min-w-0 cursor-pointer overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm",
+              "group relative min-h-0 min-w-0 cursor-pointer overflow-hidden rounded-lg border bg-card text-card-foreground shadow-sm touch-manipulation",
               "md:min-w-[80px]",
             )}
             onMouseEnter={() => handleInteraction(index)}
@@ -84,7 +84,10 @@ export const ExpandingCards = React.forwardRef<HTMLUListElement, ExpandingCardsP
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
-            <article className="absolute inset-0 flex flex-col justify-end gap-2 p-4">
+            <article className="absolute inset-0 flex flex-col justify-end gap-2 p-3 sm:p-4">
+              <h3 className="text-xs font-medium uppercase tracking-wider text-white/70 transition-all duration-300 ease-out group-data-[active=true]:opacity-0 md:hidden">
+                {item.title}
+              </h3>
               <h3 className="hidden origin-left rotate-90 text-sm font-light uppercase tracking-wider text-white/80 opacity-100 transition-all duration-300 ease-out group-data-[active=true]:opacity-0 md:block">
                 {item.title}
               </h3>

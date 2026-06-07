@@ -273,7 +273,11 @@ export function ScrollExpandMedia({
 
   const mediaWidth = 300 + scrollProgress * (isMobileState ? 650 : 1250);
   const mediaHeight = 400 + scrollProgress * (isMobileState ? 200 : 400);
-  const textTranslateX = scrollProgress * (isMobileState ? 180 : 150);
+  const textTranslateX = scrollProgress * (isMobileState ? 18 : 150);
+  const expandHint =
+    scrollToExpand && isMobileState
+      ? scrollToExpand.replace(/scroll/i, "Swipe")
+      : scrollToExpand;
 
   const firstWord = title ? title.split(" ")[0] : "";
   const restOfTitle = title ? title.split(" ").slice(1).join(" ") : "";
@@ -300,14 +304,14 @@ export function ScrollExpandMedia({
           </motion.div>
 
           <div className="container relative z-10 mx-auto flex flex-col items-center justify-start">
-            <div className="relative flex h-[100dvh] w-full flex-col items-center justify-center pt-20">
+            <div className="relative flex h-[100dvh] w-full flex-col items-center justify-center pt-[calc(5rem+env(safe-area-inset-top))]">
               <div
                 className="absolute top-1/2 left-1/2 z-0 -translate-x-1/2 -translate-y-1/2 rounded-2xl transition-none"
                 style={{
                   width: `${mediaWidth}px`,
                   height: `${mediaHeight}px`,
                   maxWidth: "95vw",
-                  maxHeight: "85vh",
+                  maxHeight: isMobileState ? "72vh" : "85vh",
                   boxShadow: scrollProgress > 0.3 ? "0 0 80px rgba(34, 211, 238, 0.15)" : "0 0 50px rgba(0, 0, 0, 0.4)",
                 }}
               >
@@ -363,28 +367,28 @@ export function ScrollExpandMedia({
                   )}
                   {scrollToExpand && scrollProgress < 0.85 && (
                     <p
-                      className="mt-2 text-sm text-muted-foreground"
+                      className="mt-2 px-2 text-xs text-muted-foreground sm:text-sm"
                       style={{ transform: `translateX(${textTranslateX}vw)` }}
                     >
-                      {scrollToExpand}
+                      {expandHint}
                     </p>
                   )}
                 </div>
               </div>
 
               <div
-                className={`relative z-10 flex w-full flex-col items-center justify-center gap-2 text-center transition-none md:gap-4 ${
+                className={`relative z-10 flex w-full max-w-[100vw] flex-col items-center justify-center gap-1 px-3 text-center transition-none sm:gap-2 md:gap-4 ${
                   textBlend ? "mix-blend-difference" : "mix-blend-normal"
                 }`}
               >
                 <motion.h1
-                  className="font-display text-5xl font-bold tracking-tighter text-foreground transition-none md:text-6xl lg:text-7xl"
+                  className="font-display text-4xl font-bold tracking-tighter text-foreground transition-none sm:text-5xl md:text-6xl lg:text-7xl"
                   style={{ transform: `translateX(-${textTranslateX}vw)` }}
                 >
                   {firstWord}
                 </motion.h1>
                 <motion.h1
-                  className="font-display text-5xl font-bold tracking-tighter text-primary transition-none md:text-6xl lg:text-7xl"
+                  className="font-display text-4xl font-bold tracking-tighter text-primary transition-none sm:text-5xl md:text-6xl lg:text-7xl"
                   style={{ transform: `translateX(${textTranslateX}vw)` }}
                 >
                   {restOfTitle}
@@ -393,7 +397,7 @@ export function ScrollExpandMedia({
             </div>
 
             <motion.section
-              className="flex w-full flex-col bg-background px-6 pb-16 md:px-12 lg:px-20 lg:pb-24"
+              className="flex w-full flex-col bg-background px-4 pb-[calc(4rem+env(safe-area-inset-bottom))] sm:px-6 md:px-12 md:pb-24 lg:px-20 lg:pb-24"
               initial={{ opacity: 0 }}
               animate={{ opacity: showContent ? 1 : 0 }}
               transition={{ duration: 0.7 }}

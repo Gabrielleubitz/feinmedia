@@ -15,14 +15,14 @@ export function HeroSection() {
         date="Est. 2026"
         scrollToExpand="Scroll to expand"
       >
-        <div className="mx-auto max-w-4xl border-t border-border pt-16 md:pt-20">
-          <p className="font-display text-balance text-center text-2xl font-medium leading-snug text-foreground md:text-3xl lg:text-4xl">
+        <div className="mx-auto max-w-4xl border-t border-border px-1 pt-12 sm:px-0 sm:pt-16 md:pt-20">
+          <p className="font-display text-balance text-center text-xl font-medium leading-snug text-foreground sm:text-2xl md:text-3xl lg:text-4xl">
             At Fein Media Productions, we help businesses, brands, and
             organizations stand out through{" "}
             <span className="text-primary">powerful visual content</span>.
           </p>
 
-          <p className="mx-auto mt-8 max-w-3xl text-pretty text-center text-base leading-relaxed text-muted-foreground md:text-lg">
+          <p className="mx-auto mt-6 max-w-3xl text-pretty text-center text-sm leading-relaxed text-muted-foreground sm:mt-8 sm:text-base md:text-lg">
             From professional videography and video editing to social media
             management, we create content designed to capture attention, tell
             your story, and grow your audience. Whether it&apos;s event coverage,
@@ -30,18 +30,18 @@ export function HeroSection() {
             life with a modern, professional touch.
           </p>
 
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mt-8 flex w-full flex-col items-stretch justify-center gap-3 sm:mt-10 sm:flex-row sm:items-center sm:gap-4">
             <a
               href="https://calendly.com/feinmediaproductions"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition-all hover:opacity-90 active:scale-[0.98]"
             >
               Book a call now
             </a>
             <Link
               href="#gallery"
-              className="inline-flex items-center justify-center rounded-full border border-border px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-border px-7 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary active:scale-[0.98]"
             >
               View the reels
             </Link>
