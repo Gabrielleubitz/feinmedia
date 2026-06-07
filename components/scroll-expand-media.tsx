@@ -37,15 +37,61 @@ export function ScrollExpandMedia({
   const [scrollProgress, setScrollProgress] = useState(0);
   const [showContent, setShowContent] = useState(false);
   const [mediaFullyExpanded, setMediaFullyExpanded] = useState(false);
-  const [touchStartY, setTouchStartY] = useState(0);
   const [isMobileState, setIsMobileState] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
-  const [isVideoInView, setIsVideoInView] = useState(true);
 
   const sectionRef = useRef<HTMLDivElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const scrollProgressRef = useRef(scrollProgress);
-  const mediaFullyExpandedRef = useRef(mediaFullyExpanded);
+  const scrollProgressRef = useRef(0);
+  const mediaFullyExpandedRef = useRef(false);
+  const isVideoInViewRef = useRef(true);
+  const touchStartYRef = useRef<number | null>(null);
+  const userHasUnmutedRef = useRef(false);
+
+  const isExpansionComplete = () =>
+    mediaFullyExpandedRef.current || scrollProgressRef.current >= 1;
+
+  const applyProgressDelta = (delta: number, fromUserGesture: boolean) => {
+    const newProgress = Math.min(
+      Math.max(scrollProgressRef.current + delta, 0),
+      1,
+    );
+    scrollProgressRef.current = newProgress;
+    setScrollProgress(newProgress);
+
+    if (newProgress >= 1) {
+      mediaFullyExpandedRef.current = true;
+      setMediaFullyExpanded(true);
+      setShowContent(true);
+    } else {
+      mediaFullyExpandedRef.current = false;
+      setMediaFullyExpanded(false);
+      if (newProgress < 0.75) {
+        setShowContent(false);
+      }
+    }
+
+    if (!fromUserGesture) return;
+
+    const video = videoRef.current;
+    if (!video || mediaType !== "video") return;
+
+    const wantAudio =
+      newProgress >= AUDIO_START_PROGRESS && isVideoInViewRef.current;
+
+    if (wantAudio) {
+      userHasUnmutedRef.current = true;
+      video.muted = false;
+      void video.play().catch(() => {
+        video.muted = true;
+        userHasUnmutedRef.current = false;
+        void video.play().catch(() => {});
+      });
+    } else {
+      video.muted = true;
+      void video.play().catch(() => {});
+    }
+  };
 
   useEffect(() => {
     scrollProgressRef.current = scrollProgress;
@@ -55,17 +101,14 @@ export function ScrollExpandMedia({
     mediaFullyExpandedRef.current = mediaFullyExpanded;
   }, [mediaFullyExpanded]);
 
-  const shouldPlayAudio =
-    mediaType === "video" &&
-    scrollProgress >= AUDIO_START_PROGRESS &&
-    isVideoInView;
-
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     const apply = () => {
       const reduced = mq.matches;
       setReducedMotion(reduced);
       if (reduced) {
+        scrollProgressRef.current = 1;
+        mediaFullyExpandedRef.current = true;
         setScrollProgress(1);
         setShowContent(true);
         setMediaFullyExpanded(true);
@@ -80,21 +123,19 @@ export function ScrollExpandMedia({
     const video = videoRef.current;
     if (!video || mediaType !== "video") return;
 
-    video.muted = !shouldPlayAudio;
-    if (shouldPlayAudio) {
-      void video.play();
-    }
-  }, [shouldPlayAudio, mediaType]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || mediaType !== "video") return;
-
     video.loop = true;
 
     const replay = () => {
       video.currentTime = 0;
-      void video.play();
+      const wantAudio =
+        userHasUnmutedRef.current &&
+        scrollProgressRef.current >= AUDIO_START_PROGRESS &&
+        isVideoInViewRef.current;
+      video.muted = !wantAudio;
+      void video.play().catch(() => {
+        video.muted = true;
+        void video.play().catch(() => {});
+      });
     };
 
     video.addEventListener("ended", replay);
@@ -109,7 +150,14 @@ export function ScrollExpandMedia({
     if (!video || mediaType !== "video") return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => setIsVideoInView(entry.isIntersecting),
+      ([entry]) => {
+        isVideoInViewRef.current = entry.isIntersecting;
+
+        const video = videoRef.current;
+        if (video && !entry.isIntersecting) {
+          video.muted = true;
+        }
+      },
       { threshold: 0.2 },
     );
 
@@ -119,6 +167,9 @@ export function ScrollExpandMedia({
 
   useEffect(() => {
     if (reducedMotion) return;
+    scrollProgressRef.current = 0;
+    mediaFullyExpandedRef.current = false;
+    userHasUnmutedRef.current = false;
     setScrollProgress(0);
     setShowContent(false);
     setMediaFullyExpanded(false);
@@ -127,84 +178,88 @@ export function ScrollExpandMedia({
   useEffect(() => {
     if (reducedMotion) return;
 
-    const handleWheel = (e: WheelEvent) => {
-      if (mediaFullyExpanded && e.deltaY < 0 && window.scrollY <= 5) {
-        setMediaFullyExpanded(false);
-        e.preventDefault();
-      } else if (!mediaFullyExpanded) {
-        e.preventDefault();
-        const scrollDelta = e.deltaY * 0.0009;
-        const newProgress = Math.min(Math.max(scrollProgress + scrollDelta, 0), 1);
-        setScrollProgress(newProgress);
+    const handlePointerDown = () => {
+      const video = videoRef.current;
+      if (!video || mediaType !== "video") return;
 
-        if (newProgress >= 1) {
-          setMediaFullyExpanded(true);
-          setShowContent(true);
-        } else if (newProgress < 0.75) {
-          setShowContent(false);
-        }
+      if (
+        scrollProgressRef.current >= AUDIO_START_PROGRESS &&
+        isVideoInViewRef.current
+      ) {
+        userHasUnmutedRef.current = true;
+        video.muted = false;
+        void video.play().catch(() => {
+          video.muted = true;
+          userHasUnmutedRef.current = false;
+          void video.play().catch(() => {});
+        });
       }
+    };
+
+    const handleWheel = (e: WheelEvent) => {
+      if (isExpansionComplete()) {
+        if (e.deltaY < 0 && window.scrollY <= 5) {
+          e.preventDefault();
+          applyProgressDelta(e.deltaY * 0.0009, true);
+        }
+        return;
+      }
+
+      e.preventDefault();
+      applyProgressDelta(e.deltaY * 0.0009, true);
     };
 
     const handleTouchStart = (e: TouchEvent) => {
-      setTouchStartY(e.touches[0].clientY);
+      touchStartYRef.current = e.touches[0].clientY;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (!touchStartY) return;
+      const startY = touchStartYRef.current;
+      if (startY === null) return;
 
       const touchY = e.touches[0].clientY;
-      const deltaY = touchStartY - touchY;
+      const deltaY = startY - touchY;
 
-      if (mediaFullyExpanded && deltaY < -20 && window.scrollY <= 5) {
-        setMediaFullyExpanded(false);
-        e.preventDefault();
-      } else if (!mediaFullyExpanded) {
-        e.preventDefault();
-        const scrollFactor = deltaY < 0 ? 0.008 : 0.005;
-        const scrollDelta = deltaY * scrollFactor;
-        const newProgress = Math.min(Math.max(scrollProgress + scrollDelta, 0), 1);
-        setScrollProgress(newProgress);
-
-        if (newProgress >= 1) {
-          setMediaFullyExpanded(true);
-          setShowContent(true);
-        } else if (newProgress < 0.75) {
-          setShowContent(false);
+      if (isExpansionComplete()) {
+        if (deltaY < -20 && window.scrollY <= 5) {
+          e.preventDefault();
+          applyProgressDelta(deltaY * 0.005, true);
         }
-
-        setTouchStartY(touchY);
+        return;
       }
+
+      e.preventDefault();
+      const scrollFactor = deltaY < 0 ? 0.008 : 0.005;
+      applyProgressDelta(deltaY * scrollFactor, true);
+      touchStartYRef.current = touchY;
     };
 
     const handleTouchEnd = () => {
-      setTouchStartY(0);
+      touchStartYRef.current = null;
     };
 
     const handleScroll = () => {
-      // Only pin while actively expanding — never snap back after full expand or on video end
-      if (
-        !mediaFullyExpandedRef.current &&
-        scrollProgressRef.current < 1
-      ) {
+      if (!isExpansionComplete()) {
         window.scrollTo(0, 0);
       }
     };
 
+    window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("wheel", handleWheel, { passive: false });
     window.addEventListener("scroll", handleScroll);
-    window.addEventListener("touchstart", handleTouchStart, { passive: false });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", handleTouchEnd);
 
     return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
       window.removeEventListener("wheel", handleWheel);
       window.removeEventListener("scroll", handleScroll);
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
     };
-  }, [scrollProgress, mediaFullyExpanded, touchStartY, reducedMotion]);
+  }, [reducedMotion, mediaType]);
 
   useEffect(() => {
     const checkIfMobile = () => {

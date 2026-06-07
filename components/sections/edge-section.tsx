@@ -9,8 +9,8 @@ export function EdgeSection() {
         <Reveal variant="right" duration={1100} className="order-2 lg:order-1">
           <div className="relative aspect-[4/3] overflow-hidden rounded-2xl border border-border">
             <FadeImage
-              src="/images/fein-editor.png"
-              alt="Video editor color grading footage at a post-production workstation"
+              src="/images/wix/edit-suite.jpg"
+              alt="Professional video editing suite with multi-monitor workflow"
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"

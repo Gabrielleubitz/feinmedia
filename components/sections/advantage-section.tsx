@@ -1,30 +1,45 @@
-import { Eye, Zap, Smartphone, Target } from "lucide-react";
+"use client";
+
+import { Eye, Smartphone, Target, Zap } from "lucide-react";
+import { ExpandingCards, type CardItem } from "@/components/expanding-cards";
 import { Reveal } from "@/components/reveal";
 
-const advantages = [
+const advantageCards: CardItem[] = [
   {
-    icon: Eye,
+    id: 1,
     title: "Maximized Views",
     description:
       "Engineered for engagement. We create high-impact social media videos that grab attention in the first 3 seconds.",
+    imgSrc: "/images/wix/social-portfolio-phone.jpg",
+    icon: <Eye className="h-6 w-6 text-primary" />,
+    linkHref: "#gallery",
   },
   {
-    icon: Zap,
+    id: 2,
     title: "Rapid Turnaround",
     description:
       "Never miss a trend. Our streamlined post-production delivers polished event coverage and reels in record time.",
+    imgSrc: "/images/wix/edit-suite.jpg",
+    icon: <Zap className="h-6 w-6 text-primary" />,
+    linkHref: "#gallery",
   },
   {
-    icon: Smartphone,
+    id: 3,
     title: "Vertical-First Edits",
     description:
       "Native content for mobile. We specialize in 9:16 framing that feels right at home on Instagram and TikTok.",
+    imgSrc: "/images/wix/hand-holding-phone.jpg",
+    icon: <Smartphone className="h-6 w-6 text-primary" />,
+    linkHref: "#gallery",
   },
   {
-    icon: Target,
+    id: 4,
     title: "Tailored Strategy",
     description:
       "Content with a purpose. Every frame is edited to match your brand voice and platform-specific algorithms.",
+    imgSrc: "/images/wix/pro-camera-night.jpg",
+    icon: <Target className="h-6 w-6 text-primary" />,
+    linkHref: "#contact",
   },
 ];
 
@@ -41,28 +56,16 @@ export function AdvantageSection() {
           <Reveal variant="up" delay={120}>
             <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
               Four pillars that turn passive scrollers into engaged audiences for
-              your brand.
+              your brand. Hover or tap to explore.
             </p>
           </Reveal>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {advantages.map((item, i) => (
-            <Reveal key={item.title} variant="up" delay={i * 110}>
-              <div className="group flex h-full flex-col rounded-xl border border-border bg-card p-7 transition-colors hover:border-primary/50">
-                <span className="mb-6 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                  <item.icon size={22} />
-                </span>
-                <h3 className="text-lg font-semibold uppercase tracking-wide text-foreground">
-                  {item.title}
-                </h3>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {item.description}
-                </p>
-              </div>
-            </Reveal>
-          ))}
-        </div>
+        <Reveal variant="up" delay={180}>
+          <div className="flex justify-center">
+            <ExpandingCards items={advantageCards} defaultActiveIndex={0} />
+          </div>
+        </Reveal>
       </div>
     </section>
   );

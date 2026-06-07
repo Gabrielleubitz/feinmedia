@@ -5,6 +5,7 @@ import { MarqueeSection } from "@/components/sections/marquee-section";
 import { EdgeSection } from "@/components/sections/edge-section";
 import { GalleryBentoSection } from "@/components/sections/gallery-bento-section";
 import { FooterSection } from "@/components/sections/footer-section";
+import { IganiBadge, IganiCredit } from "@/components/igani-badge";
 
 export default function Home() {
   return (
@@ -15,7 +16,9 @@ export default function Home() {
       <MarqueeSection />
       <EdgeSection />
       <GalleryBentoSection />
+      <IganiCredit />
       <FooterSection />
+      <IganiBadge />
     </main>
   );
 }

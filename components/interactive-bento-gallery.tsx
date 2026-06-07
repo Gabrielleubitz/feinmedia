@@ -147,7 +147,7 @@ const GalleryModal = ({
         animate={{ scale: 1 }}
         exit={{ scale: 0.98 }}
         transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className="fixed inset-0 z-40 min-h-screen w-full overflow-hidden rounded-none bg-background/90 backdrop-blur-xl sm:h-[90vh] md:h-[600px] sm:rounded-lg md:rounded-xl"
+        className="fixed inset-0 z-[60] min-h-screen w-full overflow-hidden rounded-none bg-background/90 backdrop-blur-xl sm:h-[90vh] md:h-[600px] sm:rounded-lg md:rounded-xl"
       >
         <div className="flex h-full flex-col">
           <div className="flex flex-1 items-center justify-center bg-background/50 p-2 sm:p-3 md:p-4">
@@ -164,6 +164,23 @@ const GalleryModal = ({
                 exit={{ y: 20, scale: 0.97, transition: { duration: 0.15 } }}
                 onClick={onClose}
               >
+                <motion.button
+                  type="button"
+                  className="absolute right-3 top-3 z-20 rounded-full border border-white/20 bg-black/70 p-2.5 text-white shadow-lg backdrop-blur-sm transition-colors hover:border-primary/60 hover:bg-primary/90 hover:text-white sm:right-4 sm:top-4 sm:p-3"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onClose();
+                  }}
+                  whileHover={{
+                    scale: 1.12,
+                    rotate: 90,
+                    transition: { type: "spring", stiffness: 400, damping: 18 },
+                  }}
+                  whileTap={{ scale: 0.92, rotate: 0 }}
+                  aria-label="Close gallery"
+                >
+                  <X className="h-4 w-4 sm:h-5 sm:w-5" />
+                </motion.button>
                 <MediaItem
                   item={selectedItem}
                   className="h-full w-full bg-black/40 object-contain"
@@ -179,17 +196,6 @@ const GalleryModal = ({
             </AnimatePresence>
           </div>
         </div>
-
-        <motion.button
-          type="button"
-          className="absolute right-2 top-2 rounded-full bg-secondary/90 p-2 text-foreground backdrop-blur-sm sm:right-2.5 sm:top-2.5 md:right-3 md:top-3"
-          onClick={onClose}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          aria-label="Close gallery"
-        >
-          <X className="h-3 w-3" />
-        </motion.button>
       </motion.div>
 
       <motion.div
@@ -204,7 +210,7 @@ const GalleryModal = ({
             y: prev.y + info.offset.y,
           }));
         }}
-        className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 touch-none"
+        className="fixed bottom-4 left-1/2 z-[70] -translate-x-1/2 touch-none"
       >
         <motion.div className="relative cursor-grab rounded-xl border border-primary/30 bg-primary/10 shadow-lg backdrop-blur-xl active:cursor-grabbing">
           <div className="flex items-center -space-x-2 px-3 py-2">

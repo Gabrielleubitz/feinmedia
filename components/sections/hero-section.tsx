@@ -9,8 +9,8 @@ export function HeroSection() {
       <ScrollExpandMedia
         mediaType="video"
         mediaSrc="/videos/hero-bg.mp4"
-        posterSrc="/videos/hero-poster.jpg"
-        bgImageSrc="/videos/hero-poster.jpg"
+        posterSrc="/images/wix/hero-brand-poster.png"
+        bgImageSrc="/images/wix/hand-holding-phone.jpg"
         title="Fein Media"
         date="Est. 2026"
         scrollToExpand="Scroll to expand"
