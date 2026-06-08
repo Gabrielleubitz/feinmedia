@@ -38,7 +38,7 @@ export function EdgeSection() {
             {[
               { value: "3s", label: "Hook window" },
               { value: "9:16", label: "Native framing" },
-              { value: "24h", label: "Fast turnaround" },
+              { value: "Rapid", label: "Delivery" },
             ].map((stat, i) => (
               <Reveal key={stat.label} variant="up" delay={250 + i * 110}>
                 <div className="rounded-xl border border-border bg-card p-3 sm:p-4">

@@ -383,6 +383,9 @@ export function ScrollExpandMedia({
   const mediaWidth = 300 + scrollProgress * (isMobileState ? 650 : 1250);
   const mediaHeight = 400 + scrollProgress * (isMobileState ? 200 : 400);
   const textTranslateX = scrollProgress * (isMobileState ? 52 : 150);
+  const heroTextOpacity = isMobileState
+    ? Math.max(0, 1 - scrollProgress * 2.75)
+    : Math.max(0, 1 - scrollProgress * 1.1);
   const expandHint =
     scrollToExpand && isMobileState
       ? scrollToExpand.replace(/scroll/i, "Swipe")
@@ -471,7 +474,10 @@ export function ScrollExpandMedia({
                   </div>
                 )}
 
-                <div className="relative z-10 mt-4 flex flex-col items-center text-center transition-none">
+                <div
+                  className="relative z-10 mt-4 flex flex-col items-center text-center transition-none"
+                  style={{ opacity: heroTextOpacity }}
+                >
                   {date && (
                     <p
                       className="text-sm font-medium uppercase tracking-[0.25em] text-primary"
@@ -491,10 +497,16 @@ export function ScrollExpandMedia({
                 </div>
               </div>
 
-              <div
+              <motion.div
                 className={`relative z-10 flex w-full max-w-[100vw] flex-col items-center justify-center gap-1 px-3 text-center transition-none sm:gap-2 md:gap-4 ${
                   textBlend ? "mix-blend-difference" : "mix-blend-normal"
                 }`}
+                animate={{ opacity: heroTextOpacity }}
+                transition={{ duration: 0.08 }}
+                style={{
+                  pointerEvents: heroTextOpacity <= 0.05 ? "none" : "auto",
+                }}
+                aria-hidden={heroTextOpacity <= 0.05}
               >
                 <motion.h1
                   className="font-display text-4xl font-bold tracking-tighter text-foreground transition-none sm:text-5xl md:text-6xl lg:text-7xl"
@@ -508,7 +520,7 @@ export function ScrollExpandMedia({
                 >
                   {restOfTitle}
                 </motion.h1>
-              </div>
+              </motion.div>
             </div>
 
             <motion.section
